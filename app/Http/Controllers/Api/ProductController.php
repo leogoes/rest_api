@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\API\ApiError;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Product;
@@ -18,7 +19,7 @@ class ProductController extends Controller
 
     public function index(){
 
-        $data = ['data' => $this->product->paginate(5)];
+        $data = ['data' => $this->product->paginate(10)];
         return  response()->json($data);
 
     }
@@ -35,8 +36,75 @@ class ProductController extends Controller
 
     public function store(Request $request){
 
-        $dataInfo = $request->all();
-        $this->product->create($dataInfo);
+        try{
+
+            $dataInfo = $request->all();
+            $this->product->create($dataInfo);
+
+            $return = ['data' => ['msg' => 'Produto criado com sucesso!']];
+
+            return response()->json($return, 201);
+
+        }   catch(\Exception $e){
+
+            if(config('app.debug')){
+
+               return response()->json(ApiError::errorMessage($e->getMessage(), 1010));
+
+            }
+
+            return response()->json(ApiError::errorMessage('Houve um erro ao realizar operação', 1010));
+
+
+
+        }
+
+
+    }
+    public function update(Request $request, $id){
+
+        try{
+
+            $productData = $request->all();
+            $product = $this->product->find($id);
+            $product->update($productData);
+
+            $return = ['data' => ['msg' => 'Produto criado com sucesso!']];
+
+            return response()->json($return, 201);
+
+        }   catch(\Exception $e){
+
+            if(config('app.debug')){
+
+               return response()->json(ApiError::errorMessage($e->getMessage(), 1010));
+
+            }
+
+            return response()->json(ApiError::errorMessage('Houve um erro ao realizar operação', 1010));
+
+        }
+
+    }
+    public function delete(Product $id){
+
+        try{
+
+            $id->delete();
+
+            return response()->json(['data' => ['msg' => 'Produto '. $id->id .' deletado com sucesso!']], 200);
+
+        }   catch(\Exception $e){
+
+            if(config('app.debug')){
+
+               return response()->json(ApiError::errorMessage($e->getMessage(), 1010));
+
+            }
+
+            return response()->json(ApiError::errorMessage('Houve um erro ao realizar operação', 1010));
+
+        }
 
     }
 }
